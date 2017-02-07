@@ -27,15 +27,16 @@ public class ReadText : MonoBehaviour {
         numberOfSplines = Int32.Parse(firstLineArray[0]);
         
         splineArray = new Spline[numberOfSplines];
+        
 
         
         for (int j = 0; j < numberOfSplines; j++) {
             string controlPointLine = myStringReader.ReadLine();
             string[] controlPointArray = controlPointLine.Split(' ');
             int numOfControlPoints = Decimal.ToInt32(Decimal.Parse(controlPointArray[0]));
-            float[] coordArray = new float[3 * numOfControlPoints];  //coordArray are to be sent to the Spline object (includes coords and frame number)
+            float[] coordArray = new float[4 * numOfControlPoints];  //coordArray are to be sent to the Spline object (includes coords and frame number and looking direction)
             int cccounter = 0;
-            for (int i = 0; i < 3 * numOfControlPoints; i = i + 3)
+            for (int i = 0; i < 4 * numOfControlPoints; i = i + 4)
             {   
                
                 string infoLine = myStringReader.ReadLine();  //infoline are the line with coord-info and frame number
@@ -46,6 +47,8 @@ public class ReadText : MonoBehaviour {
 
                 int frameNumber = Decimal.ToInt32(Decimal.Parse(infoStringArray[2]));
                 coordArray[i + 2] = frameNumber;
+                float lookingDirection = (float)Decimal.Parse(infoStringArray[3]);
+                coordArray[i + 3] = lookingDirection;
                 cccounter++;
             }
             splineArray[j] = (Spline)GameObject.Find("Ground").AddComponent(typeof(Spline));

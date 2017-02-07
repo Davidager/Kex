@@ -13,6 +13,7 @@ public class Spline : MonoBehaviour
     public GameObject Nose;
     private GameObject nose;
     private Transform noseTransform;
+    private float noseRadius;
 
     private Vector3 targetPos;
     private float speed;
@@ -31,8 +32,10 @@ public class Spline : MonoBehaviour
         controlPointNumber = 1;
         CylinderPre = Resources.Load("CylinderPre") as GameObject;
         Nose = Resources.Load("Nose") as GameObject;
+        noseRadius = 0.69f;
         yCoord = 0.2f;
-        
+       
+
     }
 
     void Update ()
@@ -43,16 +46,20 @@ public class Spline : MonoBehaviour
             {
                 startSpline();
             }
+            //ändrar targetframe 
             if (frameCounter == currentTargetFrame)
-            {
-                //ändrar targetframe 
-                
+            {                
+                // ändrar riktningen till riktningen hos den framen vi precis kommit fram till 
+                changeLookingDirection(coordArray[controlPointNumber + 3]);
+                // nästa frame fås genom att öka controlpointnumber
                 controlPointNumber++;
-                currentTargetFrame = (int)coordArray[(controlPointNumber * 3) + 2];
-                targetPos = new Vector3(coordArray[controlPointNumber * 3], yCoord, coordArray[controlPointNumber * 3 + 1]);
+                currentTargetFrame = (int)coordArray[(controlPointNumber * 4) + 2];
+                targetPos = new Vector3(coordArray[controlPointNumber * 4], yCoord, coordArray[controlPointNumber * 4 + 1]);
 
                 float dist = Vector3.Distance(targetPos, movingSplineTransform.position);
                 speed = dist / ((currentTargetFrame - frameCounter));
+
+                
             }
             moveSpline();
         }
@@ -67,10 +74,11 @@ public class Spline : MonoBehaviour
 
     public void setCoordArray(float[] coordArray)
     {
+        controlPointNumber = 1;
         this.coordArray = coordArray;
         firstFrame = (int)coordArray[2];
-        currentTargetFrame = (int)coordArray[(controlPointNumber * 3) + 2];
-        lastFrame = (int)coordArray[coordArray.Length-1];
+        currentTargetFrame = (int)coordArray[(controlPointNumber * 4) + 2];
+        lastFrame = (int)coordArray[coordArray.Length-2];
     }
 
     private void startSpline ()
@@ -84,7 +92,8 @@ public class Spline : MonoBehaviour
         nose = Instantiate(Nose, Vector3.zero, Quaternion.identity);
         noseTransform = nose.transform;
         noseTransform.parent = movingSplineTransform;
-        noseTransform.localPosition = new Vector3(0, 0.784f, 0.69f);
+        changeLookingDirection(coordArray[3]);
+        
 
         
     }
@@ -93,6 +102,13 @@ public class Spline : MonoBehaviour
     {   
         movingSplineTransform.position = Vector3.MoveTowards(movingSplineTransform.position, targetPos, speed);
 
+    }
+
+    private void changeLookingDirection (float direction)
+    {
+        float xCoord = -noseRadius * Mathf.Sin(Mathf.Deg2Rad * direction);
+        float zCoord = noseRadius * Mathf.Cos(Mathf.Deg2Rad * direction);
+        noseTransform.localPosition = new Vector3(xCoord, 0.784f, zCoord);
     }
 
 }
