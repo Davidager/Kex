@@ -17,7 +17,7 @@ public class ReadText : MonoBehaviour {
     // Use this for initialization
     void Start ()
     {
-        textAsset = (TextAsset)Resources.Load("crowds_zara02 _copy");
+        textAsset = (TextAsset)Resources.Load("crowds_zara01_copy");
         textContents = textAsset.text;
         myStringReader = new StringReader(textContents);
         string firstLine = myStringReader.ReadLine();
