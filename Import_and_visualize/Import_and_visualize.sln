@@ -1,7 +1,7 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2008
-
-Project("{F18D04F3-F8CE-0904-EB87-8A190A79911F}") = "Import_and_visualize", "Assembly-CSharp.csproj", "{53F63881-7DFF-ADC5-C8A4-33FB18583E45}"
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Import_and_visualize", "Assembly-CSharp.csproj", "{53F63881-7DFF-ADC5-C8A4-33FB18583E45}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

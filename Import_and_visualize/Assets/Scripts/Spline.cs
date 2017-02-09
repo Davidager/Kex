@@ -32,7 +32,7 @@ public class Spline : MonoBehaviour
         controlPointNumber = 1;
         CylinderPre = Resources.Load("CylinderPre") as GameObject;
         Nose = Resources.Load("Nose") as GameObject;
-        noseRadius = 0.69f;
+        noseRadius = 0.69f  ;
         yCoord = 0.2f;
        
 
@@ -50,12 +50,12 @@ public class Spline : MonoBehaviour
             if (frameCounter == currentTargetFrame)
             {                
                 // ändrar riktningen till riktningen hos den framen vi precis kommit fram till 
-                changeLookingDirection(coordArray[controlPointNumber + 3]);
+                changeLookingDirection(coordArray[controlPointNumber * 4 - 1]);
                 // nästa frame fås genom att öka controlpointnumber
-                controlPointNumber++;
+                
                 currentTargetFrame = (int)coordArray[(controlPointNumber * 4) + 2];
                 targetPos = new Vector3(coordArray[controlPointNumber * 4], yCoord, coordArray[controlPointNumber * 4 + 1]);
-
+                controlPointNumber++;
                 float dist = Vector3.Distance(targetPos, movingSplineTransform.position);
                 speed = dist / ((currentTargetFrame - frameCounter));
 
@@ -77,7 +77,8 @@ public class Spline : MonoBehaviour
         controlPointNumber = 1;
         this.coordArray = coordArray;
         firstFrame = (int)coordArray[2];
-        currentTargetFrame = (int)coordArray[(controlPointNumber * 4) + 2];
+        //currentTargetFrame = (int)coordArray[(controlPointNumber * 4) + 2];
+        currentTargetFrame = firstFrame;
         lastFrame = (int)coordArray[coordArray.Length-2];
     }
 

@@ -28,8 +28,6 @@ public class ReadText : MonoBehaviour {
         
         splineArray = new Spline[numberOfSplines];
         
-
-        
         for (int j = 0; j < numberOfSplines; j++) {
             string controlPointLine = myStringReader.ReadLine();
             string[] controlPointArray = controlPointLine.Split(' ');
