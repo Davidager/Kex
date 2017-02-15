@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\Class1.cs" />
+     <Compile Include="Assets\Scripts\ExampleInfluences.cs" />
      <Compile Include="Assets\Scripts\ImportToDatabase.cs" />
      <Compile Include="Assets\Scripts\ReadText.cs" />
      <Compile Include="Assets\Scripts\Spline.cs" />

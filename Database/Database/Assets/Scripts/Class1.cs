@@ -4,7 +4,7 @@ public class Class1
 {
 	public Class1()
 	{
-        string[] stringArray = new string[10];
+        Spline[] stringArray = new Spline[10];
         Console.WriteLine("ffyyfth");
         Console.WriteLine(stringArray[1]);
         //Console.WriteLine(stringArray[1].GetType());

@@ -6,23 +6,22 @@ using UnityEngine;
 public class Spline
 {
     private float[] coordArray; //coordArray includes the framenumber for the pair of coords in the order x z framenumber
-    private int frameCounter;
-    private GameObject movingSpline;
-    private Transform movingSplineTransform;
+    //private int frameCounter;
+    //private GameObject movingSpline;
+    public Transform movingSplineTransform;
     public GameObject CylinderPre;
-    public GameObject Nose;
-    private GameObject nose;
-    private Transform noseTransform;
-    private float noseRadius;
 
     private float currentx;
     private float currentz;
     private ReadText readText;
+    private int lastFrame;
 
     private Vector3 targetPos;
-    private float speed;
-    private int lastFrame;
+    public float speed;
+    public float lookingDirection;
+    //private int lastFrame;
     private float yCoord;
+    
     private int splineNumber;
     private int firstFrame;
     private int currentTargetFrame;
@@ -33,11 +32,9 @@ public class Spline
     // Start is used in unity in place of the usual constructor
     public Spline (ReadText readText, int splineNumber)
     {
-        frameCounter = 0;
+        //frameCounter = 0;
         controlPointNumber = 1;
-        CylinderPre = Resources.Load("CylinderPre") as GameObject;
-        Nose = Resources.Load("Nose") as GameObject;
-        noseRadius = 0.69f  ;
+        
         yCoord = 0.2f;
 
         this.readText = readText;
@@ -48,35 +45,53 @@ public class Spline
 
     public void updateSpline ()
     {
-        if (frameCounter >= firstFrame)
+        if (readText.frameCounter == lastFrame)
         {
-            if (frameCounter == firstFrame)
+            moveSpline();
+        }
+        else
+        {
+            if (readText.frameCounter == firstFrame)
             {
                 startSpline();
-            }
-            //ändrar targetframe 
-            if (frameCounter == currentTargetFrame)
-            {                
+
                 // ändrar riktningen till riktningen hos den framen vi precis kommit fram till 
-                changeLookingDirection(coordArray[controlPointNumber * 4 - 1]);
                 // nästa frame fås genom att öka controlpointnumber
-                
+
                 currentTargetFrame = (int)coordArray[(controlPointNumber * 4) + 2];
                 targetPos = new Vector3(coordArray[controlPointNumber * 4], yCoord, coordArray[controlPointNumber * 4 + 1]);
                 controlPointNumber++;
                 float dist = Vector3.Distance(targetPos, movingSplineTransform.position);
-                speed = dist / ((currentTargetFrame - frameCounter));
+                speed = dist / ((currentTargetFrame - readText.frameCounter));
 
+                //readText.sb.AppendLine(readText.frameCounter.ToString() + movingSplineTransform.position.ToString("F4"));
+            }
+            else
+            {
+                moveSpline();
+                if (readText.frameCounter == currentTargetFrame)
+                {
+                    // ändrar riktningen till riktningen hos den framen vi precis kommit fram till
+                    lookingDirection = coordArray[controlPointNumber * 4 - 1]; 
+                    // nästa frame fås genom att öka controlpointnumber
+
+                    currentTargetFrame = (int)coordArray[(controlPointNumber * 4) + 2];
+                    targetPos = new Vector3(coordArray[controlPointNumber * 4], yCoord, coordArray[controlPointNumber * 4 + 1]);
+                    controlPointNumber++;
+                    float dist = Vector3.Distance(targetPos, movingSplineTransform.position);
+                    speed = dist / ((currentTargetFrame - readText.frameCounter));
+
+
+                }
                 
             }
-            moveSpline();
+            
         }
+        
 
-        frameCounter++;
-        if (frameCounter >= lastFrame)
-        {
-            readText.deleteSpline(splineNumber);
-        }
+
+        //ändrar targetframe 
+             
     }
 
     public void setCoordArray(float[] coordArray)
@@ -84,9 +99,10 @@ public class Spline
         controlPointNumber = 1;
         this.coordArray = coordArray;
         firstFrame = (int)coordArray[2];
+        lastFrame = (int)coordArray[coordArray.Length - 2];
         //currentTargetFrame = (int)coordArray[(controlPointNumber * 4) + 2];
         currentTargetFrame = firstFrame;
-        lastFrame = (int)coordArray[coordArray.Length-2];
+        //lastFrame = (int)coordArray[coordArray.Length-2];
     }
 
     private void startSpline ()
@@ -95,28 +111,17 @@ public class Spline
         float startz = coordArray[1];
         Vector3 startPosition = new Vector3(startx, yCoord, startz);
         //movingSpline = Instantiate(CylinderPre, startPosition, Quaternion.identity);
-        movingSplineTransform = movingSpline.transform;
-
+        movingSplineTransform = new GameObject().transform;
+        movingSplineTransform.position = startPosition;
+        lookingDirection = coordArray[3];
         //nose = Instantiate(Nose, Vector3.zero, Quaternion.identity);
-        noseTransform = nose.transform;
-        noseTransform.parent = movingSplineTransform;
-        changeLookingDirection(coordArray[3]);
-        
-
-        
+                
     }
 
     private void moveSpline ()
     {   
         movingSplineTransform.position = Vector3.MoveTowards(movingSplineTransform.position, targetPos, speed);
 
-    }
-
-    private void changeLookingDirection (float direction)
-    {
-        float xCoord = -noseRadius * Mathf.Sin(Mathf.Deg2Rad * direction);
-        float zCoord = noseRadius * Mathf.Cos(Mathf.Deg2Rad * direction);
-        noseTransform.localPosition = new Vector3(xCoord, 0.784f, zCoord);
     }
 
 }
