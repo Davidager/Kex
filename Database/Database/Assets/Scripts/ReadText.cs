@@ -15,9 +15,9 @@ public class ReadText {
     public Dictionary<int, ArrayList> firstFrameTable;
     private Dictionary<int, ArrayList> lastFrameTable;
     private Dictionary<int, Spline> activeSplineTable;
-    private Dictionary<int, ExampleInfluences> exampleInfluencesTable;
-    private List<ExampleInfluences> exampleList;
+    private Dictionary<int, Example> exampleTable;
     private ArrayList exampleInfluencesList;
+    private int exampleCounter;
 
     public StringBuilder sb;
     public Transform CylinderPre;
@@ -41,10 +41,11 @@ public class ReadText {
         }
 
         frameCounter = 0;
+        exampleCounter = 1;
         //string textContents = sr.ReadToEnd();
       
         exampleInfluencesList = new ArrayList();
-        exampleList = new List<ExampleInfluences>();
+        exampleTable = new Dictionary<int, Example>();
         sb = new StringBuilder();
         myStringReader = new StringReader(textContents);
         string firstLine = myStringReader.ReadLine();
@@ -121,48 +122,58 @@ public class ReadText {
                 activeSplineTable.Remove(j);
             }
         }
-        foreach (KeyValuePair<int, Spline> s in activeSplineTable)
+        if (frameCounter%40 == 0)
         {
-            s.Value.updateSpline();
-            sb.AppendLine(frameCounter.ToString() + s.Value.movingSplineTransform.position.ToString("F4"));
-            if(frameCounter%40 == 0)
+            exampleTable.Clear();
+        }
+
+        foreach (KeyValuePair<int, Spline> e in activeSplineTable)
+        {
+            e.Value.updateSpline();
+            sb.AppendLine(frameCounter.ToString() + e.Value.movingSplineTransform.position.ToString("F4"));
+            if(frameCounter%40 == 0 && e.Value.getLastFrame() >= 40 + frameCounter)
             {
-                exampleInfluencesTable.Add(s.Key, new ExampleInfluences());           
+                //exampleTable.Clear();
+                // clear exampleTable??????`??`?      <----VIKTIGT
+                exampleTable.Add(e.Key, new Example(exampleCounter));
+                exampleCounter++;           
             }
-            if (exampleInfluencesTable.ContainsKey(s.Key))   // Saves the speed for this frame if there
-            {                                               // exists an ExampleInfluences instance.
-                //exampleInfluencesTable[s.Key].exampleSpline = s.Value;
-                Transform splineTransform = s.Value.movingSplineTransform;
-                exampleInfluencesTable[s.Key].speed = s.Value.speed;
-                exampleInfluencesTable[s.Key].saveToPath(splineTransform.position.x,
-                        splineTransform.position.z);
+            if (exampleTable.ContainsKey(e.Key))   // Saves the speed for this frame if there
+            {                                               // exists an Example instance.
+                //exampleTable[s.Key].exampleSpline = s.Value;
+                exampleTable[e.Key].saveiInformation(e.Value);
+
+                foreach (KeyValuePair<int, Example> s in exampleTable)
+                {
+                    if (s.Key == e.Key)   // if s is i   (the subject of an example)
+                    {
+
+                        // saves the speed for influence calculations
+                    }
+                    else     // if s is j   (an influencing agent of an example)
+                    {
+                        exampleTable[e.Key].savejInformation(splineArray[s.Key]);
+                    }
+
+                }
+
             }     
         }
 
-        foreach (KeyValuePair<int, ExampleInfluences> e in exampleInfluencesTable)
-        {
-            foreach (KeyValuePair<int, Spline> s in activeSplineTable)
-            {
-                if (s.Key == e.Key)   // if s is i   (the subject of an example)
-                {
-                    
-                    // saves the speed for influence calculations
-                } else     // if s is j   (an influencing agent of an example)
-                {
-                    Transform splineTransform = s.Value.movingSplineTransform;
-                    exampleInfluencesTable[e.Key].calculateInfluences(splineTransform.position.x,
-                        splineTransform.position.z);
-                }
-                
-            }
-            
-        }
-
+        storeFrameData();
         if (frameCounter % 40 == 39)
         {
-
+            //lägg till influence!
         }
         frameCounter++;
+    }
+
+    private void storeFrameData()
+    {
+        foreach (KeyValuePair<int, Example> e in exampleTable)
+        {
+            e.Value.storeData(frameCounter);
+        }
     }
   
 

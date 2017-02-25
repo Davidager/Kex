@@ -47,9 +47,11 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\Class1.cs" />
-     <Compile Include="Assets\Scripts\ExampleInfluences.cs" />
+     <Compile Include="Assets\Scripts\Example.cs" />
+     <Compile Include="Assets\Scripts\ExampleContainer.cs" />
      <Compile Include="Assets\Scripts\ImportToDatabase.cs" />
      <Compile Include="Assets\Scripts\ReadText.cs" />
+     <Compile Include="Assets\Scripts\SaveData.cs" />
      <Compile Include="Assets\Scripts\Spline.cs" />
      <Compile Include="Assets\Scripts\StartScript.cs" />
      <None Include="Assets\TextFiles\crowds_zara01_copy.txt" />
