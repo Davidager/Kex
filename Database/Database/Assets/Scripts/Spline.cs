@@ -23,7 +23,7 @@ public class Spline
     //private int lastFrame;
     private float yCoord;
     
-    private int splineNumber;
+    public int splineNumber;
     private int firstFrame;
     private int currentTargetFrame;
     private int controlPointNumber; // the control point which the spline is moving towards 
@@ -82,6 +82,7 @@ public class Spline
                     targetPos = new Vector3(coordArray[controlPointNumber * 4], yCoord, coordArray[controlPointNumber * 4 + 1]);
                     controlPointNumber++;
                     float dist = Vector3.Distance(targetPos, movingSplineTransform.position);
+                    calculateDirection(targetPos.x - movingSplineTransform.position.x, targetPos.z - movingSplineTransform.position.z);
                     speed = dist / ((currentTargetFrame - readText.frameCounter));
 
 

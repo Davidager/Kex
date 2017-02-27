@@ -18,12 +18,12 @@ public class ReadText {
     private Dictionary<int, Example> exampleTable;
     private ArrayList exampleInfluencesList;
     private int exampleCounter;
+    public static ExampleContainer exampleContainer = new ExampleContainer();
 
     public StringBuilder sb;
     public Transform CylinderPre;
     public ReadText()
     {
-        
         string textContents;
         try
         {
@@ -43,7 +43,7 @@ public class ReadText {
         frameCounter = 0;
         exampleCounter = 1;
         //string textContents = sr.ReadToEnd();
-      
+
         exampleInfluencesList = new ArrayList();
         exampleTable = new Dictionary<int, Example>();
         sb = new StringBuilder();
@@ -99,11 +99,14 @@ public class ReadText {
             splineArray[j] = (Spline)new Spline(this, j);
             splineArray[j].setCoordArray(coordArray);
         }
-        for(int i = 0; i < 9015; i++)
+        for(int i = 0; i < 9015; i++) //9015
         nextFrame();
         
         string path = @"C:\Users\David\Documents\GitHub\Kex\Database\MyTest.txt";
         File.WriteAllText(path, sb.ToString());
+        
+        string xmlPath = @"C:\Users\David\Documents\GitHub\Kex\Database\xmlTest.txt";
+        SaveData.save(xmlPath, SaveData.exampleContainer);
     }
 
     private void nextFrame() 
@@ -137,7 +140,7 @@ public class ReadText {
                 // clear exampleTable??????`??`?      <----VIKTIGT
                 exampleTable.Add(e.Key, new Example(exampleCounter));
                 exampleCounter++;           
-            }
+            }/*
             if (exampleTable.ContainsKey(e.Key))   // Saves the speed for this frame if there
             {                                               // exists an Example instance.
                 //exampleTable[s.Key].exampleSpline = s.Value;
@@ -157,13 +160,28 @@ public class ReadText {
 
                 }
 
-            }     
+            }    */ 
+        }
+
+        foreach (KeyValuePair<int, Example> e in exampleTable)
+        {
+            exampleTable[e.Key].saveiInformation(splineArray[e.Key]);
+            foreach (KeyValuePair<int, Example> s in exampleTable)
+            {
+                if(s.Key != e.Key)   //  if s is not i (the subject of an example)
+                {
+                    exampleTable[e.Key].savejInformation(splineArray[s.Key]);
+                }
+            }
         }
 
         storeFrameData();
         if (frameCounter % 40 == 39)
         {
-            //lägg till influence!
+            foreach (KeyValuePair<int, Example> e in exampleTable)
+            {
+                e.Value.endCurrentExample();
+            }
         }
         frameCounter++;
     }

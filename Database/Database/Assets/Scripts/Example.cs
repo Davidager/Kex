@@ -16,6 +16,7 @@ public class Example {
     private List<float> jPosList;
     private List<float> jSpeed;
     private List<float> jDirection;
+    private List<int> jSplineNumber;
     private Vector2 newOrigin;
     
     private float currentixCoord;
@@ -33,36 +34,64 @@ public class Example {
         jPosList = new List<float>(20);   // i snitt 10 jAgents
         jSpeed = new List<float>();
         jDirection = new List<float>();
+        jSplineNumber = new List<int>();
+
+        maxInfluence = 0;
+        influenceSum = 0;
         
 
     }
 
     // inte klart ännu men!
-    public void calculateInfluences(float jxCoord, float jzCoord)
+    private void calculateInfluences(float jxCoord, float jzCoord)
     {
         float distance = (float)Math.Sqrt((jxCoord - currentixCoord) * (jxCoord - currentixCoord) +
             (jzCoord - currentizCoord) * (jzCoord - currentizCoord));
-        float influenceFj;
+        float influencePj;
+        influencePj = (float)Math.Exp(-iSpeed * Math.Pow(distance, 2) / 2);
+        float infFactor;
         if (jInFrontofi(jxCoord, jzCoord))
         {
-            influenceFj = (float)Math.Exp(-iSpeed * Math.Pow(distance, 2) / (2));
+            infFactor = (float)Math.Exp(-1* Math.Pow(distance, 2) / (2*iSpeed));
+        } else
+        {
+            infFactor = (float)Math.Exp(-iSpeed * Math.Pow(distance, 2));
+        }
+
+        float infOut = influencePj * infFactor;
+        influenceSum = influenceSum + infOut;
+
+        if (maxInfluence < infOut)
+        {
+            maxInfluence = infOut;
         }
         
     }
 
     private Boolean jInFrontofi(float jxCoord, float jzCoord)
     {
-        return true;
+        Vector2 retvec = new Vector2(jxCoord - currentixCoord, jzCoord - currentizCoord);
+        retvec = Quaternion.Euler(new Vector3(0, 0, (iDirection - (Mathf.PI / 2)) * 180 / Mathf.PI)) * retvec;
+
+        if (retvec.y > 0)
+        {
+            return true;
+        } else
+        {
+            return false;
+        }
     }
 
     public void savejInformation(Spline jSpline)
-    {
+    {   
+        
         Transform splineTransformj = jSpline.movingSplineTransform;
         jPosList.Add(splineTransformj.position.x);
         jPosList.Add(splineTransformj.position.z);
 
         jSpeed.Add(jSpline.speed);
         jDirection.Add(jSpline.movingDirection);
+        jSplineNumber.Add(jSpline.splineNumber);
 
         calculateInfluences(splineTransformj.position.x, splineTransformj.position.z);
     }
@@ -79,6 +108,7 @@ public class Example {
         
         if (newOrigin == default(Vector2))
         {
+            exampleSpline = iSpline;
             newOrigin = new Vector2(currentixCoord, currentizCoord);
             originDirection = iDirection;
         }
@@ -87,13 +117,13 @@ public class Example {
     private Vector2 globalToLocalVector2 (Vector2 position)
     {
         Vector2 retvec = new Vector2(position.x - newOrigin.x, position.y - newOrigin.y);
-        retvec = Quaternion.Euler(new Vector3(0, 0, (iDirection - (Mathf.PI / 2)) * 180 / Mathf.PI))*retvec;
+        retvec = Quaternion.Euler(new Vector3(0, 0, (originDirection - (Mathf.PI / 2)) * 180 / Mathf.PI))*retvec;
         return retvec;
     }
 
     private float globalToLocalDirection (float direction)
     {
-        direction = direction - iDirection + Mathf.PI / 2;
+        direction = direction - originDirection + Mathf.PI / 2;
         if (direction < 0) direction = direction + 2 * Mathf.PI;
         return direction;
     }
@@ -103,17 +133,38 @@ public class Example {
         FrameData frameData = new FrameData();
         frameData.frameNumber = frameNumber;
         frameData.subject = new Agent();
-        frameData.subject.splineIndex = 1;
+        frameData.subject.splineIndex = exampleSpline.splineNumber;
         frameData.subject.localPosition = globalToLocalVector2
             (new Vector2(currentixCoord, currentizCoord));
         frameData.subject.direction = globalToLocalDirection(iDirection);
         frameData.subject.speed = iSpeed;
 
+        for (int i = 0; i < jPosList.Count; i = i + 2)
+        {
+            Agent newjAgent = new Agent();
+            newjAgent.splineIndex = jSplineNumber[i / 2];
+            newjAgent.localPosition = globalToLocalVector2
+                (new Vector2(jPosList[i], jPosList[i + 1]));
+            newjAgent.direction = globalToLocalDirection(jDirection[i / 2]);
+            newjAgent.speed = jSpeed[i / 2];
 
+            frameData.jAgents.Add(newjAgent);
+        }
+
+        jSplineNumber.Clear();
+        jSpeed.Clear();
+        jDirection.Clear();
+        jPosList.Clear();
 
 
 
         data.examples.Add(frameData);
+    }
+
+    public void endCurrentExample()
+    {
+        data.influenceFunction = maxInfluence / influenceSum;
+        SaveData.addExampleData(data);
     }
 
 
@@ -151,7 +202,7 @@ public class Agent
     public int splineIndex;
 
     [XmlElement("LocalPosition")]
-    public Vector2 localPosition;
+    public Vector2 localPosition; 
 
     [XmlElement("Direction")]
     public float direction;
