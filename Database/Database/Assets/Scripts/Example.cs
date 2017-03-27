@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine;   // tömma agentlistor osv
 using System;
 using System.Xml.Serialization;
 
@@ -9,6 +9,7 @@ public class Example {
     private int influences;
     private float iSpeed;
     private float iDirection;
+    private static float CUTOFF = 0.1f;
 
     private float influenceSum;
     private float maxInfluence;
@@ -18,7 +19,8 @@ public class Example {
     private List<float> jDirection;
     private List<int> jSplineNumber;
     private Vector2 newOrigin;
-    
+    private Dictionary<int, float> maxInfluenceTable;
+
     private float currentixCoord;
     private float currentizCoord;
 
@@ -35,15 +37,15 @@ public class Example {
         jSpeed = new List<float>();
         jDirection = new List<float>();
         jSplineNumber = new List<int>();
-
+        maxInfluenceTable = new Dictionary<int, float>();
+        
         maxInfluence = 0;
         influenceSum = 0;
         
 
     }
 
-    // inte klart ännu men!
-    private void calculateInfluences(float jxCoord, float jzCoord)
+    private void calculateInfluences(float jxCoord, float jzCoord, int splineNumber)
     {
         float distance = (float)Math.Sqrt((jxCoord - currentixCoord) * (jxCoord - currentixCoord) +
             (jzCoord - currentizCoord) * (jzCoord - currentizCoord));
@@ -52,33 +54,40 @@ public class Example {
         float infFactor;
         if (jInFrontofi(jxCoord, jzCoord))
         {
-            infFactor = (float)Math.Exp(-1* Math.Pow(distance, 2) / (2*iSpeed));
-        } else
+            infFactor = (float)Math.Exp(-1 * Math.Pow(distance, 2) / (2 * iSpeed));
+        }
+        else
         {
             infFactor = (float)Math.Exp(-iSpeed * Math.Pow(distance, 2));
         }
 
         float infOut = influencePj * infFactor;
-        influenceSum = influenceSum + infOut;
-
-        if (maxInfluence < infOut)
+        if (!maxInfluenceTable.ContainsKey(splineNumber))
         {
-            maxInfluence = infOut;
+            maxInfluenceTable.Add(splineNumber, infOut);
         }
-        
-    }
+        else
+        {
+            if (maxInfluenceTable[splineNumber] < infOut)
+            {
+                maxInfluenceTable[splineNumber] = infOut;
+            }
+        }        
+    }   
 
     private Boolean jInFrontofi(float jxCoord, float jzCoord)
     {
         Vector2 retvec = new Vector2(jxCoord - currentixCoord, jzCoord - currentizCoord);
-        retvec = Quaternion.Euler(new Vector3(0, 0, (iDirection - (Mathf.PI / 2)) * 180 / Mathf.PI)) * retvec;
+        //float retvecDirection = Spline.calculateDirection(retvec.x, retvec.y);
+        Vector2 iVec = new Vector2(Mathf.Cos(iDirection), Mathf.Sin(iDirection));
+        //retvec = Quaternion.Euler(new Vector3(0, 0, (iDirection - (Mathf.PI / 2)) * 180 / Mathf.PI)) * retvec;
 
-        if (retvec.y > 0)
-        {
-            return true;
-        } else
+        if (Vector2.Dot(retvec, iVec) < 0 ) 
         {
             return false;
+        } else
+        {
+            return true;
         }
     }
 
@@ -93,7 +102,7 @@ public class Example {
         jDirection.Add(jSpline.movingDirection);
         jSplineNumber.Add(jSpline.splineNumber);
 
-        calculateInfluences(splineTransformj.position.x, splineTransformj.position.z);
+        calculateInfluences(splineTransformj.position.x, splineTransformj.position.z, jSpline.splineNumber);
     }
     
     public void saveiInformation(Spline iSpline)
@@ -132,8 +141,8 @@ public class Example {
     {
         FrameData frameData = new FrameData();
         frameData.frameNumber = frameNumber;
-        frameData.subject = new Agent();
-        frameData.subject.splineIndex = exampleSpline.splineNumber;
+        frameData.subject = new XmlAgent();
+        frameData.subject.agenteIndex = exampleSpline.splineNumber;
         frameData.subject.localPosition = globalToLocalVector2
             (new Vector2(currentixCoord, currentizCoord));
         frameData.subject.direction = globalToLocalDirection(iDirection);
@@ -141,14 +150,14 @@ public class Example {
 
         for (int i = 0; i < jPosList.Count; i = i + 2)
         {
-            Agent newjAgent = new Agent();
-            newjAgent.splineIndex = jSplineNumber[i / 2];
+            XmlAgent newjAgent = new XmlAgent();
+            newjAgent.agenteIndex = jSplineNumber[i / 2];
             newjAgent.localPosition = globalToLocalVector2
                 (new Vector2(jPosList[i], jPosList[i + 1]));
             newjAgent.direction = globalToLocalDirection(jDirection[i / 2]);
             newjAgent.speed = jSpeed[i / 2];
 
-            frameData.jAgents.Add(newjAgent);
+            frameData.jAgents.Add(newjAgent); 
         }
 
         jSplineNumber.Clear();
@@ -163,8 +172,72 @@ public class Example {
 
     public void endCurrentExample()
     {
-        data.influenceFunction = maxInfluence / influenceSum;
-        SaveData.addExampleData(data);
+        List<int> keyRemoveList = new List<int>();
+        foreach (KeyValuePair<int, float> e in maxInfluenceTable)
+        {
+            if (maxInfluenceTable[e.Key] < CUTOFF)  // kolla storleksordning så CUTOFF är rätt!
+            {
+                keyRemoveList.Add(e.Key);
+            }
+        } 
+        foreach (int key in keyRemoveList)
+        {
+            maxInfluenceTable.Remove(key);
+        }
+
+        float maxInfSum = 0;
+        foreach (KeyValuePair<int, float> e in maxInfluenceTable)
+        {
+            maxInfSum += e.Value;
+        }
+
+        Dictionary<int, float> finalInfluencetable = new Dictionary<int, float>();
+        foreach (KeyValuePair<int, float> e in maxInfluenceTable)
+        {
+            finalInfluencetable.Add(e.Key, e.Value / maxInfSum);
+
+            //lägger in influencefunction i ouppdaterade data, egentligen onödigt, kan nog kommenteras bort!
+            /*XmlInfluenceFunction newInfFunc = new XmlInfluenceFunction();
+            newInfFunc.jAgentIndex = e.Key;
+            newInfFunc.value = finalInfluencetable[e.Key];         
+            
+            data.influenceFunctions.Add(newInfFunc);*/
+
+        }
+
+        // skapar en ny ExampleData där endast agents med influence över CUTOFF får vara med.
+        ExampleData updatedData = new ExampleData();
+        updatedData.exampleNumber = data.exampleNumber;
+        foreach (FrameData framedata in data.examples)
+        {
+            FrameData updatedFrameData = new FrameData();
+            updatedFrameData.frameNumber = framedata.frameNumber;
+            updatedFrameData.subject = framedata.subject;
+            foreach (XmlAgent jAgent in framedata.jAgents)
+            {
+                if (maxInfluenceTable.ContainsKey(jAgent.agenteIndex))
+                {
+                    updatedFrameData.jAgents.Add(jAgent);
+                }
+            }
+            updatedData.examples.Add(updatedFrameData);
+        }
+
+        foreach (KeyValuePair<int, float> e in maxInfluenceTable)
+        {
+            XmlInfluenceFunction newInfFunc = new XmlInfluenceFunction();
+            newInfFunc.jAgentIndex = e.Key;
+            newInfFunc.value = finalInfluencetable[e.Key];
+
+            updatedData.influenceFunctions.Add(newInfFunc);
+        }
+
+        //SaveData.addExampleData(data);        den gamla sparningen, som inte görs nu när vi har uppdaterat.
+        if (!(updatedData.influenceFunctions.Count==0))
+        {
+            SaveData.addExampleData(updatedData);
+        }
+        
     }
 
 
@@ -179,8 +252,9 @@ public class ExampleData
     [XmlArrayItem("Frame")]
     public List<FrameData> examples = new List<FrameData>();
 
-    [XmlElement("InfluenceFunction")]
-    public float influenceFunction;
+    [XmlArray("InfluenceFunctions")]
+    [XmlArrayItem("InfluenceFunction")]
+    public List<XmlInfluenceFunction> influenceFunctions = new List<XmlInfluenceFunction>();
 }
 
 public class FrameData
@@ -189,17 +263,26 @@ public class FrameData
     public int frameNumber;
 
     [XmlElement("Subject")]
-    public Agent subject;
+    public XmlAgent subject;
 
     [XmlArray("jAgents")]
     [XmlArrayItem("jAgent")]
-    public List<Agent> jAgents = new List<Agent>();
+    public List<XmlAgent> jAgents = new List<XmlAgent>();
 }
 
-public class Agent
+public class XmlInfluenceFunction
 {
-    [XmlAttribute("splineIndex")]
-    public int splineIndex;
+    [XmlAttribute("jAgentIndex")]
+    public int jAgentIndex;
+
+    [XmlElement("Value")]
+    public float value;
+}
+
+public class XmlAgent
+{
+    [XmlAttribute("agentIndex")]
+    public int agenteIndex;
 
     [XmlElement("LocalPosition")]
     public Vector2 localPosition; 

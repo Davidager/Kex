@@ -63,7 +63,7 @@ public class Spline
                 targetPos = new Vector3(coordArray[controlPointNumber * 4], yCoord, coordArray[controlPointNumber * 4 + 1]);
                 controlPointNumber++;
                 float dist = Vector3.Distance(targetPos, movingSplineTransform.position);
-                calculateDirection(targetPos.x - movingSplineTransform.position.x, targetPos.z - movingSplineTransform.position.z);
+                movingDirection = calculateDirection(targetPos.x - movingSplineTransform.position.x, targetPos.z - movingSplineTransform.position.z);
 
                 speed = dist / ((currentTargetFrame - readText.frameCounter));
 
@@ -82,7 +82,7 @@ public class Spline
                     targetPos = new Vector3(coordArray[controlPointNumber * 4], yCoord, coordArray[controlPointNumber * 4 + 1]);
                     controlPointNumber++;
                     float dist = Vector3.Distance(targetPos, movingSplineTransform.position);
-                    calculateDirection(targetPos.x - movingSplineTransform.position.x, targetPos.z - movingSplineTransform.position.z);
+                    movingDirection = calculateDirection(targetPos.x - movingSplineTransform.position.x, targetPos.z - movingSplineTransform.position.z);
                     speed = dist / ((currentTargetFrame - readText.frameCounter));
 
 
@@ -93,33 +93,36 @@ public class Spline
         } 
         //ändrar targetframe      
     }
-
-    private void calculateDirection(float x, float z)
+    
+    // beräknar vinkeln från x-axeln till vektorn, 0 < vinkeln < 2pi
+    public static float calculateDirection(float x, float z)
     {
+        float direction;
         if (x == 0)
         {
             if (z > 0)
             {
-                movingDirection = Mathf.PI / 2;
+                direction = Mathf.PI / 2;
             } else if (z < 0)
             {
-                movingDirection = 3*Mathf.PI / 2;
+                direction = 3*Mathf.PI / 2;
             } else
             {
-                movingDirection = 0;
+                direction = 0;
             }
         } else
         {
-            movingDirection = Mathf.Atan(z / x);
+            direction = Mathf.Atan(z / x);
             if (x < 0)
             {
-                movingDirection = movingDirection + Mathf.PI;
+                direction = direction + Mathf.PI;
             }
             else if (z < 0)
             {
-                movingDirection = 2 * Mathf.PI + movingDirection;
+                direction = 2 * Mathf.PI + direction;
             }
         }
+        return direction;
     }
   
     public void setCoordArray(float[] coordArray)
