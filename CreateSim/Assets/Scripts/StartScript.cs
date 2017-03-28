@@ -6,7 +6,7 @@ public class StartScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        new ReadDatabase();
+        ReadDatabase.readDatabase();
         Debug.Log("End of code; finished");
 	}
 	

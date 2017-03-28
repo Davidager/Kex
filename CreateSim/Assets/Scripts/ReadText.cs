@@ -52,7 +52,7 @@ public class ReadText : MonoBehaviour {
                 cccounter++;
             }
             splineArray[j] = (Agent)GameObject.Find("Ground").AddComponent(typeof(Agent));
-            splineArray[j].setCoordArray(coordArray);
+            //splineArray[j].setCoordArray(coordArray);
         }      
 
     }

@@ -61,7 +61,7 @@ public class Agent : MonoBehaviour
         // controlPointNumber++;
         // float dist = Vector3.Distance(targetPos, movingSplineTransform.position);
         // speed = dist / ((currentTargetFrame - frameCounter));
-        CreateSimulation.assignTrajectory(this, agentNumber);
+        //CreateSimulation.assignTrajectory(this, agentNumber);
                 
         
         moveSpline();
@@ -136,8 +136,8 @@ public class Agent : MonoBehaviour
     }
 
     private void moveSpline ()
-    {   
-        movingSplineTransform.position = Vector3.MoveTowards(movingSplineTransform.position, targetPos, speed);
+    {
+        movingSplineTransform.position = Vector3.MoveTowards(movingSplineTransform.position, targetPos, 0.05f);// speed);
         // TODO: om utanför viss gräns; remove agent!   
     }
 

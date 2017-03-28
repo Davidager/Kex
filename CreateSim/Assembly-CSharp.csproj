@@ -48,6 +48,7 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\Agent.cs" />
      <Compile Include="Assets\Scripts\Class1.cs" />
+     <Compile Include="Assets\Scripts\Configuration.cs" />
      <Compile Include="Assets\Scripts\CreateSimulation.cs" />
      <Compile Include="Assets\Scripts\Example.cs" />
      <Compile Include="Assets\Scripts\ExampleContainer.cs" />

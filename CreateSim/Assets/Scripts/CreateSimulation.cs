@@ -8,7 +8,7 @@ using System.Xml;
 
 
 public class CreateSimulation : MonoBehaviour{
-
+    /*
 
     private Dictionary<int, float> affinityTable;
     private float matchingCUTOFF = new float{};
@@ -16,6 +16,7 @@ public class CreateSimulation : MonoBehaviour{
 
     void Start()
     {
+        createExampleConfigurations();
         activeAgentTable = new Dictionary<int, Agent>();
         for (int i = 0; i < 10; i++)
         {
@@ -42,6 +43,8 @@ public class CreateSimulation : MonoBehaviour{
             updateTrajectory(agent);
         }
     }
+
+    private void create
 
     private static void updateTrajectory(Agent Agentj){
 
@@ -118,6 +121,6 @@ public class CreateSimulation : MonoBehaviour{
         /*foreach (Agent agent in agentArray)
         {
             assignTrajectory(agent);
-        }*/
-    }
+        }
+    }*/
 }
